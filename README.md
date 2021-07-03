@@ -7,7 +7,7 @@
 
 [![build](https://github.com/RamiKrispin/covid19sf/workflows/build/badge.svg)](https://github.com/RamiKrispin/covid19sf/actions)
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/covid19sf)](https://cran.r-project.org/package=covid19sf)
-[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![GitHub
@@ -30,6 +30,10 @@ San Francisco. The package includes the following datasets:
     case disposition
 -   `covid19sf_test_loc` - Testing locations
 -   `covid19sf_tests` - Daily number of tests
+-   `covid19sf_vaccine_demo` - Summary of vaccine doses given to San
+    Franciscans by demographics groups (age and race)
+-   `covid19sf_vaccine_demo_ts` - Time series view of vaccine doses
+    given to San Franciscans by demographics groups (age and race)
 
 **Data soucre:** San Francisco, Department of Public Health - Population
 Health Division through the San Francisco [Opne Data protal
@@ -65,12 +69,12 @@ data(covid19sf_age)
 
 head(covid19sf_age)
 #>   specimen_collection_date age_group new_confirmed_cases cumulative_confirmed_cases        last_updated
-#> 1               2020-03-12     51-60                   2                          6 2020-11-13 14:15:03
-#> 2               2020-03-13     51-60                   3                          9 2020-11-13 14:15:03
-#> 3               2020-03-14     51-60                   1                         10 2020-11-13 14:15:03
-#> 4               2020-03-15     51-60                   0                         10 2020-11-13 14:15:03
-#> 5               2020-03-16     51-60                   8                         18 2020-11-13 14:15:03
-#> 6               2020-03-17     51-60                   3                         21 2020-11-13 14:15:03
+#> 1               2020-03-13     25-29                   3                          7 2021-07-02 16:00:02
+#> 2               2020-03-14     25-29                   2                          9 2021-07-02 16:00:02
+#> 3               2020-03-15     25-29                   1                         10 2021-07-02 16:00:02
+#> 4               2020-03-16     25-29                   1                         11 2021-07-02 16:00:02
+#> 5               2020-03-17     25-29                   0                         11 2021-07-02 16:00:02
+#> 6               2020-03-18     25-29                   3                         14 2021-07-02 16:00:02
 ```
 
 The following box-plot shows the distribution of the positive cases by
@@ -80,10 +84,13 @@ age group:
 library(plotly)
 
 covid19sf_age$age_group <- factor(covid19sf_age$age_group, 
-                                  levels = c("under 18",  "18-30", 
-                                             "31-40", "41-50",
-                                             "51-60", "61-70",
-                                             "71-80","81+"))
+                                  levels = c("0-4",  "5-10", 
+                                             "11-13", "14-17",
+                                             "18-20", "21-24",
+                                             "25-29",
+                                             "30-39", "40-49",
+                                             "50-59", "60-69",
+                                             "70-79", "80+"))
 
 plot_ly(covid19sf_age, 
         color = ~ age_group, 
@@ -92,15 +99,15 @@ plot_ly(covid19sf_age,
         jitter = 0.3,
         pointpos = -1.8,
         type = "box" ) %>%
-layout(title = "Case Dist. by Age Group",
+layout(title = "Distribution of Daily New Covid Cases in San Francisco by Age Group",
        yaxis = list(title = "Number of Cases"),
        xaxis = list(title = "Source: San Francisco Department of Public Health"),
        legend = list(x = 0.9, y = 0.9))
 ```
 
-<img src="man/figures/age_dist1.png" width="100%" />
+<img src="man/figures/age_dist1.svg" width="100%" />
 
-Here is the overall distribution of cases by age group as of 2020-11-12:
+Here is the overall distribution of cases by age group as of 2021-06-28:
 
 ``` r
 library(dplyr)
@@ -119,7 +126,7 @@ covid19sf_age %>%
    layout(title = "Total Cases Distribution by Age Group")
 ```
 
-<img src="man/figures/age_dist2.png" width="70%" />
+<img src="man/figures/age_dist2.svg" width="70%" />
 
 ### Tests results distribution
 
@@ -130,13 +137,13 @@ tests and their results (positive, negative, and indeterminate):
 data(covid19sf_tests)
 
 head(covid19sf_tests)
-#>   specimen_collection_date tests pos        pct neg indeterminate        last_updated
-#> 1               2020-02-28     2   0 0.00000000   2             0 2020-11-13 14:15:00
-#> 2               2020-03-01     2   0 0.00000000   2             0 2020-11-13 14:15:00
-#> 3               2020-03-02     2   0 0.00000000   2             0 2020-11-13 14:15:00
-#> 4               2020-03-03     8   2 0.25000000   6             0 2020-11-13 14:15:00
-#> 5               2020-03-04    12   0 0.00000000  12             0 2020-11-13 14:15:00
-#> 6               2020-03-05    23   6 0.26086957  17             0 2020-11-13 14:15:00
+#>   specimen_collection_date tests pos         pct neg indeterminate          data_loaded_at        last_updated
+#> 1               2020-03-12   192   9 0.046875000 183             0 2021-07-03T05:00:34.933 2021-07-02 16:31:29
+#> 2               2020-03-13   252  18 0.071428571 234             0 2021-07-03T05:00:36.662 2021-07-02 16:31:29
+#> 3               2020-03-14   153  10 0.065359477 143             0 2021-07-03T05:00:36.665 2021-07-02 16:31:29
+#> 4               2020-03-15   151  11 0.073333333 139             1 2021-07-03T05:00:36.668 2021-07-02 16:31:29
+#> 5               2020-03-29   161  16 0.101265823 142             3 2021-07-03T05:00:36.671 2021-07-02 16:31:29
+#> 6               2020-03-30   401  47 0.117500000 353             1 2021-07-03T05:00:36.674 2021-07-02 16:31:29
 ```
 
 The plot below shows the daily distribution of the results of the tests:
@@ -158,7 +165,7 @@ plotly::plot_ly(x = ~ specimen_collection_date,
                  legend = list(x = 0.1, y = 0.9))
 ```
 
-<img src="man/figures/test_dist.png" width="100%" />
+<img src="man/figures/test_dist.svg" width="100%" />
 
 ### Cases distribution by race ethnicity
 
@@ -170,12 +177,12 @@ data(covid19sf_demo)
 
 head(covid19sf_demo)
 #>   specimen_collection_date race_ethnicity new_confirmed_cases cumulative_confirmed_cases        last_updated
-#> 1               2020-05-19          Asian                   0                        312 2020-11-13 14:15:03
-#> 2               2020-05-31          Asian                   5                        348 2020-11-13 14:15:03
-#> 3               2020-06-01          Asian                   5                        353 2020-11-13 14:15:03
-#> 4               2020-06-02          Asian                   3                        356 2020-11-13 14:15:03
-#> 5               2020-06-03          Asian                   2                        358 2020-11-13 14:15:03
-#> 6               2020-06-04          Asian                   5                        363 2020-11-13 14:15:03
+#> 1               2020-03-13          Asian                   3                          7 2021-07-02 16:00:02
+#> 2               2020-03-14          Asian                   2                          9 2021-07-02 16:00:02
+#> 3               2020-03-15          Asian                   2                         11 2021-07-02 16:00:02
+#> 4               2020-03-16          Asian                   8                         19 2021-07-02 16:00:02
+#> 5               2020-03-17          Asian                   4                         23 2021-07-02 16:00:02
+#> 6               2020-03-18          Asian                   0                         23 2021-07-02 16:00:02
 ```
 
 Below is a plot of the cumulative positive cases by race and ethnicity:
@@ -196,4 +203,4 @@ plotly::plot_ly(x = ~ specimen_collection_date,
          xaxis = list(title = "Source: San Francisco Department of Public Health"))
 ```
 
-<img src="man/figures/demo_dist.png" width="100%" />
+<img src="man/figures/demo_dist.svg" width="100%" />
